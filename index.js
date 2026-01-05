@@ -211,6 +211,65 @@ app.get('/ping', nocache, ping);
 app.get('/rtc/:channel/:role/:tokentype/:uid', nocache, generateRTCToken); // Endpoint for RTC token generation
 app.get('/rtm/:uid/', nocache, generateRTMToken); // Endpoint for RTM token generation
 app.get('/rte/:channel/:role/:tokentype/:uid', nocache, generateRTEToken); // Endpoint for both RTC and RTM token generation
+app.use(express.json());
+
+// save usage
+app.post('/usage/save', async (req, res) => {
+  try {
+    const { uid, callTime, callCount, screenTime, location } = req.body;
+
+    const query = `
+      INSERT INTO usage_stats
+        (firebase_uid, date, total_call_time, call_count, screen_time, last_location)
+      VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
+      ON CONFLICT (firebase_uid, date)
+      DO UPDATE SET
+        total_call_time = usage_stats.total_call_time + EXCLUDED.total_call_time,
+        call_count      = usage_stats.call_count      + EXCLUDED.call_count,
+        screen_time     = usage_stats.screen_time     + EXCLUDED.screen_time,
+        last_location   = EXCLUDED.last_location;
+    `;
+
+    const values = [
+      uid,
+      callTime || 0,
+      callCount || 0,
+      screenTime || 0,
+      location || null,
+    ];
+
+    await db.query(query, values);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false });
+  }
+});
+
+// get last 7 days usage
+app.get('/usage/get', async (req, res) => {
+  try {
+    const { uid } = req.query;
+
+    const query = `
+      SELECT date,
+             total_call_time,
+             call_count,
+             screen_time,
+             last_location
+      FROM usage_stats
+      WHERE firebase_uid = $1
+        AND date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY date DESC;
+    `;
+
+    const { rows } = await db.query(query, [uid]);
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {
