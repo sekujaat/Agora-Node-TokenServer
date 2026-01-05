@@ -8,6 +8,7 @@ const {
   RtmTokenBuilder,
   RtmRole,
 } = require('agora-access-token');
+const db = require('./db');
 
 // Load environment variables from .env file
 dotenv.config();
