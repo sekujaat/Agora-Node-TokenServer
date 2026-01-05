@@ -1,19 +1,19 @@
 {
   "name": "agoratokenserver",
-  "version": "2.1.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.1.0",
+  "description": "Agora token server",
+  "main": "app.js",
   "scripts": {
     "test": "jest",
-    "start": "node index.js"
+    "start": "node app.js"
   },
   "author": "digitallysavvy",
   "contributors": [
-    "ekaansharora"
+    "akashnarora"
   ],
   "license": "MIT",
   "dependencies": {
-    "agora-token": "^2.0.3",
+    "agora-access-token": "^2.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
